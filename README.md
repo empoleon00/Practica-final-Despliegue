@@ -1,2 +1,229 @@
-# vercel-render
-Proyecto de ejemplo para desplegar una aplicación web en Vercel y Render
+# Proyecto Didáctico: Despliegue en Vercel y Render (Frontend + Backend)
+
+Este repositorio es una guía práctica para aprender a estructurar, dockerizar y desplegar una aplicación web siguiendo los principios de **CI/CD** con **GitHub Actions**, **Vercel** y **Render**.
+
+Utiliza:
+- **Frontend:** Vue 3 + Vite + Tailwind CSS
+- **Backend:** FastAPI (Python)
+- **Desarrollo:** Docker Compose
+- **Despliegue:** GitHub Actions + Render + Vercel
+
+---
+
+## Estructura del Proyecto
+
+El repositorio está organizado siguiendo el patrón de monorepositorio sencillo, donde cada servicio tiene su propia responsabilidad y configuración:
+
+```text
+.
+├── backend/                # API REST con FastAPI (Python)
+│   ├── main.py             # Lógica de la API y configuración de CORS
+│   ├── requirements.txt    # Dependencias del proyecto
+│   └── Dockerfile          # Imagen optimizada para producción (Multi-stage)
+├── frontend/               # Aplicación Web con Vue 3 + Vite
+│   ├── src/
+│   │   ├── App.vue         # Componente principal
+│   │   ├── main.ts         # Punto de entrada
+│   │   ├── style.css       # Estilos globales con Tailwind
+│   │   └── services/
+│   │       └── api.ts      # Servicio para consumir API del backend
+│   ├── index.html          # Punto de entrada HTML
+│   ├── Dockerfile          # Imagen optimizada (Multi-stage)
+│   ├── vite.config.ts      # Configuración de Vite
+│   └── tailwind.config.js  # Configuración de Tailwind CSS
+├── .github/workflows/      # Automatización (CI/CD)
+│   ├── deploy-backend.yaml # Despliegue automático a Render
+│   └── deploy-frontend.yaml# Despliegue automático a Vercel
+├── compose.yaml            # Orquestación para desarrollo local
+└── README.md               # Esta documentación
+```
+
+---
+
+## 1. Desarrollo Local con Docker
+
+Para asegurar que todos los desarrolladores trabajen en el mismo entorno, utilizamos **Docker Compose**. Esto emula cómo funcionará la aplicación en producción.
+
+### Requisitos:
+- Docker y Docker Compose instalados.
+
+### Pasos:
+1. Clona el repositorio.
+2. Desde la raíz, levanta ambos servicios:
+   ```bash
+   docker compose up --build
+   ```
+3. Accede a las aplicaciones:
+   - **Frontend:** [http://localhost:3000](http://localhost:3000)
+   - **Backend API:** [http://localhost:8000](http://localhost:8000)
+   - **Documentación Interactiva (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 2. Estructura del Frontend
+
+### Componentes principales:
+
+- **App.vue:** Componente raíz que consume datos del backend
+- **services/api.ts:** Servicio centralizador para peticiones HTTP con axios
+- **style.css:** Estilos globales usando Tailwind CSS
+
+### Consumiendo datos del backend:
+
+```typescript
+// src/services/api.ts
+import { apiService } from './services/api'
+
+// En el componente
+onMounted(async () => {
+  const data = await apiService.getData()
+  // Usar los datos
+})
+```
+
+### Variables de entorno:
+
+```bash
+# Durante desarrollo
+VITE_API_URL=http://localhost:8000
+
+# En producción (Render)
+VITE_API_URL=https://tu-api.onrender.com
+```
+
+---
+
+## 3. Estructura del Backend
+
+### Endpoints disponibles:
+
+- **GET /** - Estado del backend
+- **GET /api/data** - Lista de módulos del proyecto
+- **GET /docs** - Documentación interactiva (Swagger)
+
+### CORS configurado:
+
+El backend permite peticiones desde cualquier origen (configurable en producción):
+
+```python
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En producción, restringir a dominios específicos
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+---
+
+## 4. Guía de Despliegue (CI/CD)
+
+El objetivo es que cada vez que hagas un `git push` a la rama `main`, la aplicación se actualice automáticamente en internet.
+
+### A. Despliegue del Backend (Render)
+1. Ve a [Render.com](https://render.com) y crea un **Web Service**.
+2. Conecta tu repositorio de GitHub.
+3. En la configuración del servicio:
+   - **Runtime:** `Docker`
+   - **Plan:** Free (o el que prefieras).
+   - **Build Command:** `docker build -t backend ./backend`
+4. En la pestaña **Settings**, busca la sección **Deploy Hook** y copia la URL que te proporcionan.
+5. Ve a tu repositorio en GitHub > `Settings` > `Secrets and variables` > `Actions` y crea un **Secret** llamado:
+   - `RENDER_DEPLOY_HOOK`: Pega la URL copiada.
+
+### B. Despliegue del Frontend (Vercel)
+1. Instala la CLI de Vercel localmente: `npm install -g vercel`.
+2. Haz login: `vercel login`.
+3. Ejecuta `vercel link` en la carpeta `frontend/` para crear el proyecto en Vercel.
+4. Obtén los IDs necesarios:
+   - El archivo `.vercel/project.json` contendrá tu `orgId` y `projectId`.
+   - Genera un token en [Vercel Settings > Tokens](https://vercel.com/account/tokens).
+5. Crea los siguientes **Secrets** en GitHub:
+   - `VERCEL_TOKEN`: Tu token de acceso.
+   - `VERCEL_ORG_ID`: Tu ID de organización.
+   - `VERCEL_PROJECT_ID`: Tu ID de proyecto.
+6. Configura la variable de entorno en Vercel:
+   - `VITE_API_URL`: URL de tu API en Render (ej: `https://tu-api.onrender.com`)
+
+---
+
+## 5. Conceptos Clave
+
+### Docker Multi-stage
+En los `Dockerfile`, utilizamos dos o más fases:
+- **Builder:** Instala dependencias y compila/construye la aplicación
+- **Runner/Development:** Solo copia lo necesario para ejecutar
+
+Esto reduce el tamaño de las imágenes, mejora la seguridad y acelera el despliegue.
+
+### CORS (Cross-Origin Resource Sharing)
+El backend está configurado para aceptar peticiones del frontend. Sin esto, el navegador bloquearía la conexión por seguridad.
+
+```python
+app.add_middleware(CORSMiddleware, allow_origins=["*"])
+```
+
+### Variables de Entorno
+- **Frontend:** `VITE_API_URL` indica dónde está el backend
+- **Backend:** `PORT` indica en qué puerto escuchar
+
+Nunca incluyas estas en el código, usa siempre archivos `.env` (no versionados).
+
+### Secrets de GitHub
+Nunca subas contraseñas, tokens o claves al repositorio. Usa siempre:
+- GitHub Secrets (Settings > Secrets and variables)
+- Variables de entorno en plataformas de despliegue (Vercel, Render)
+
+---
+
+## 6. Tecnologías Utilizadas
+
+| Componente | Tecnología | Versión |
+|-----------|-----------|---------|
+| **Frontend** | Vue 3 | ^3.4.21 |
+| **Build Tool** | Vite | ^5.0.11 |
+| **CSS** | Tailwind CSS | ^3.4.1 |
+| **Backend** | FastAPI | Última |
+| **Python** | Python | 3.11+ |
+| **Servidor Docker** | Node.js | 20-slim |
+| **Base de Datos** | - | (Puede agregarse) |
+
+---
+
+## 7. Comandos Útiles
+
+```bash
+# Desarrollo local
+docker compose up --build
+
+# Detener servicios
+docker compose down
+
+# Reconstruir solo frontend
+docker compose up --build frontend
+
+# Ver logs de un servicio específico
+docker compose logs -f frontend
+
+# Ejecutar comando en un contenedor
+docker compose exec frontend npm install
+```
+
+---
+
+## 8. Próximos Pasos
+
+- [ ] Agregar autenticación con JWT
+- [ ] Implementar base de datos (PostgreSQL)
+- [ ] Crear modelos de datos más complejos
+- [ ] Escribir tests (pytest para backend, Vitest para frontend)
+- [ ] Implementar CI/CD con GitHub Actions
+- [ ] Configurar monitoring y logging
+- [ ] Documentar APIs con OpenAPI/Swagger
+
+---
+
+## Licencia
+
+Este proyecto es de código abierto y está disponible bajo la licencia MIT.
