@@ -122,33 +122,119 @@ app.add_middleware(
 El objetivo es que cada vez que hagas un `git push` a la rama `main`, la aplicación se actualice automáticamente en internet.
 
 ### A. Despliegue del Backend (Render)
-1. Ve a [Render.com](https://render.com) y crea un **Web Service**.
-2. Conecta tu repositorio de GitHub.
-3. En la configuración del servicio:
-   - **Runtime:** `Docker`
-   - **Plan:** Free (o el que prefieras).
-   - **Build Command:** `docker build -t backend ./backend`
-4. En la pestaña **Settings**, busca la sección **Deploy Hook** y copia la URL que te proporcionan.
-5. Ve a tu repositorio en GitHub > `Settings` > `Secrets and variables` > `Actions` y crea un **Secret** llamado:
-   - `RENDER_DEPLOY_HOOK`: Pega la URL copiada.
 
-### B. Despliegue del Frontend (Vercel)
-1. Instala la CLI de Vercel localmente: `npm install -g vercel`.
-2. Haz login: `vercel login`.
-3. Ejecuta `vercel link` en la carpeta `frontend/` para crear el proyecto en Vercel.
-4. Obtén los IDs necesarios:
-   - El archivo `.vercel/project.json` contendrá tu `orgId` y `projectId`.
-   - Genera un token en [Vercel Settings > Tokens](https://vercel.com/account/tokens).
-5. Crea los siguientes **Secrets** en GitHub:
-   - `VERCEL_TOKEN`: Tu token de acceso.
-   - `VERCEL_ORG_ID`: Tu ID de organización.
-   - `VERCEL_PROJECT_ID`: Tu ID de proyecto.
-6. Configura la variable de entorno en Vercel:
-   - `VITE_API_URL`: URL de tu API en Render (ej: `https://tu-api.onrender.com`)
+**Opción 1: Desde la Web (Recomendado para todos los planes)**
+
+1. Ve a [Render.com](https://render.com) e inicia sesión (o crea una cuenta con GitHub).
+2. Haz clic en **"New +"** > **"Web Service"**.
+3. Conecta tu repositorio de GitHub:
+   - Selecciona tu repositorio (`vercel-render`).
+   - Haz clic en **"Connect"**.
+4. Configura el servicio:
+   - **Name:** `vercel-render-backend`
+   - **Root Directory:** `./backend` (importante)
+   - **Runtime:** `Docker`
+   - **Region:** Elige la más cercana a ti
+   - **Plan:** Free (o el que prefieras)
+5. Haz clic en **"Create Web Service"** y espera a que se despliegue.
+6. Una vez desplegado, tu backend estará disponible en una URL como: `https://vercel-render-backend-xxx.onrender.com`
+
+**¿Qué sucede automáticamente?**
+- Render detecta los cambios en tu repositorio automáticamente.
+- Cada `git push` a la rama `main` desencadena un nuevo despliegue (esto funciona en FREE).
+- Verás el progreso en el dashboard de Render.
+
+**En caso de que NO se despliegue automáticamente:**
+- Si estás en plan Free y no se actualiza automáticamente, ve al dashboard.
+- Haz clic en **"Manual Deploy"** > **"Deploy latest commit"** para forzar un despliegue manual.
+
+**Nota sobre los Secrets:**
+- Los Deploy Hooks solo están disponibles en planes pagos.
+- En plan Free, el despliegue es automático cuando empujas a GitHub (no necesitas Secrets).
+- Si tienes variables de entorno sensibles, configúralas en **Settings** > **Environment Variables** en el dashboard de Render.
+
+---
+
+### B. Despliegue del Frontend (Vercel) - Opción 1: Desde la Web (Recomendado)
+
+**Opción más rápida y visual:**
+
+1. Ve a [Vercel.com](https://vercel.com) e inicia sesión (o crea una cuenta con GitHub).
+2. Haz clic en **"Add New"** > **"Project"**.
+3. Conecta tu repositorio de GitHub:
+   - Selecciona tu repositorio (`vercel-render`).
+   - Haz clic en **"Import"**.
+4. Configura el proyecto:
+   - **Project Name:** `vercel-render-frontend` (o el que prefieras)
+   - **Root Directory:** `./frontend` (importante, señala la carpeta del frontend)
+   - **Framework Preset:** `Vite`
+   - **Build Command:** `npm run build` (Vercel lo detecta automáticamente)
+   - **Output Directory:** `dist`
+5. Configura las variables de entorno:
+   - En la sección **"Environment Variables"**, agrega:
+     - **Name:** `VITE_API_URL`
+     - **Value:** `https://tu-backend.onrender.com` (reemplaza con tu URL de Render)
+6. Haz clic en **"Deploy"** y espera a que termine.
+7. Una vez desplegado, tu frontend estará disponible en una URL como: `https://vercel-render-frontend-xxx.vercel.app`
+
+**¿Qué sucede automáticamente?**
+- Cada vez que hagas `git push` a la rama `main`, Vercel reconstruye y despliega automáticamente.
+- Los cambios se verán en la web en menos de 1 minuto.
+
+---
+
+### B. Despliegue del Frontend (Vercel) - Opción 2: Desde la CLI (Avanzado)
+
+Si prefieres usar la línea de comandos:
+
+1. Instala la CLI de Vercel localmente:
+   ```bash
+   npm install -g vercel
+   ```
+2. Inicia sesión:
+   ```bash
+   vercel login
+   ```
+3. Ve a la carpeta del frontend y despliegua:
+   ```bash
+   cd frontend
+   vercel --prod
+   ```
+4. Sigue los pasos interactivos y selecciona:
+   - **Project name:** `vercel-render-frontend`
+   - **Link to existing project?** No (primera vez)
+5. Después, configura las variables de entorno desde el dashboard de Vercel.
 
 ---
 
 ## 5. Conceptos Clave
+
+### Despliegue Automático
+
+Una vez conectado tu repositorio a Vercel y Render, el despliegue es **completamente automático**:
+
+```
+1. Haces: git push a main
+                 ↓
+2. GitHub recibe el push
+                 ↓
+3. Vercel y Render detectan el cambio
+                 ↓
+4. Automáticamente inician un nuevo despliegue
+                 ↓
+5. Tu aplicación se actualiza en internet (1-2 minutos)
+```
+
+**¿Cómo lo verifico?**
+- Ve al dashboard de **Vercel** o **Render**
+- Busca la sección **"Deployments"** o **"Deploy logs"**
+- Después de cada `git push`, verás un nuevo despliegue iniciándose automáticamente
+
+**¿Qué pasa si quiero forzar un despliegue?**
+- **Vercel:** Dashboard > Project > Deployments > "Redeploy"
+- **Render:** Dashboard > Service > Manual Deploy > "Deploy latest commit"
+
+---
 
 ### Docker Multi-stage
 En los `Dockerfile`, utilizamos dos o más fases:
