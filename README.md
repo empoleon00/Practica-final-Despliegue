@@ -66,7 +66,7 @@ El repositorio está organizado siguiendo el patrón de monorepositorio sencillo
 
 <!-- --- -->
 
-## 2. Desarrollo Local con Docker
+## 2. Desarrollo local con Docker
 
 Para asegurar que todos los desarrolladores trabajen en el mismo entorno, utilizamos **Docker Compose**. Esto emula cómo funcionará la aplicación en producción.
 
