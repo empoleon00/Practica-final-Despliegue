@@ -11,9 +11,9 @@ Este proyecto utiliza:
 
 ## ¿Qué son Vercel y Render?
 
-**[Vercel](https://vercel.com)** es una plataforma de despliegue para frontend optimizada para Vue, React, Next.js, etc. Ofrece despliegue automático, CDN global y baja latencia.
+[Vercel](https://vercel.com) es una plataforma de despliegue para frontend optimizada para Vue, React, Next.js, etc. Ofrece despliegue automático, CDN global y baja latencia.
 
-**[Render](https://render.com)** es una plataforma de despliegue para backend, APIs y bases de datos. Maneja automáticamente SSL, escalado e infraestructura.
+[Render](https://render.com) es una plataforma de despliegue para backend, APIs y bases de datos. Maneja automáticamente SSL, escalado e infraestructura.
 
 En este proyecto usaremos **Vercel** para el despliegue del frontend (Vue 3) y **Render** para el despliegue del backend (FastAPI).
 
