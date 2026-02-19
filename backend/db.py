@@ -18,7 +18,7 @@ def get_db():
 def init_db():
     # Import models here to ensure they are registered on Base
     try:
-        from . import models  # noqa: F401
+        import models  # noqa: F401
         Base.metadata.create_all(bind=engine)
     except Exception:
         # If models module is missing, skip

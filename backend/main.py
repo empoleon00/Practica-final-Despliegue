@@ -4,8 +4,8 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter
 
-from .auth import router as auth_router
-from .db import init_db
+from auth import router as auth_router
+from db import init_db
 
 logger = logging.getLogger("uvicorn.error")
 

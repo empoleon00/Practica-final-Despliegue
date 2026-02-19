@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from . import models, schemas
-from .db import get_db
+import models, schemas
+from db import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
