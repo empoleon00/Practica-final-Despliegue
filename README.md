@@ -39,3 +39,7 @@ En ajustes, tokens creamos el siguiente token:
 
 Creamos otro token en github y lo implementamos
 <img width="1579" height="711" alt="image" src="https://github.com/user-attachments/assets/b0866f59-8b24-4e3f-8010-d8d8c0906e77" />
+
+
+Si hacemos un push a la rama main automaticamente en la parte de Action podemos ver como se hace un deploy en las 2 páginas
+<img width="1918" height="521" alt="image" src="https://github.com/user-attachments/assets/600f3a36-4195-473c-a639-169c64d8c328" />
